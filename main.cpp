@@ -155,6 +155,20 @@ BotPillarPosition2.h = 250;
 
 ////////////////////////
 
+SDL_Rect TopPillarPosition3;
+TopPillarPosition3.x = 1100;
+TopPillarPosition3.y = -200;
+TopPillarPosition3.w = 100;
+TopPillarPosition3.h = 250;
+
+SDL_Rect BotPillarPosition3;
+BotPillarPosition3.x = 1100;
+BotPillarPosition3.y = 200;
+BotPillarPosition3.w = 100;
+BotPillarPosition3.h = 250;
+
+////////////////
+
   images[2].offset.x = 100;
   images[2].offset.y = 0;
   images[2].offset.w = 100;
@@ -180,6 +194,9 @@ BotPillarPosition2.h = 250;
 
        TopPillarPosition2.x--;
        BotPillarPosition2.x--;
+
+       TopPillarPosition3.x--;
+       BotPillarPosition3.x--;
 
   if (jumpForce > 0)
   jumpForce--;
@@ -236,6 +253,9 @@ else
   SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition2,180,NULL,SDL_FLIP_NONE );
  SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition2,0,NULL,SDL_FLIP_NONE );
 
+   SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition3,180,NULL,SDL_FLIP_NONE );
+ SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition3,0,NULL,SDL_FLIP_NONE );
+
 
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition1);
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition2);
@@ -267,7 +287,7 @@ else
            TopPillarPosition.x += 900;
            BotPillarPosition.x += 900;
 
-           BotPillarPosition.y = rand() %200 + 100;
+           BotPillarPosition.y = rand() %200 + 150;
            TopPillarPosition.y = BotPillarPosition.y - 400;
       }
 
@@ -277,8 +297,17 @@ else
            TopPillarPosition2.x += 900;
            BotPillarPosition2.x += 900;
 
-           BotPillarPosition2.y = rand() %200 + 100;
+           BotPillarPosition2.y = rand() %200 + 150;
            TopPillarPosition2.y = BotPillarPosition2.y - 400;
+      }
+
+      if (TopPillarPosition3.x < -100)
+      {
+           TopPillarPosition3.x += 900;
+           BotPillarPosition3.x += 900;
+
+           BotPillarPosition3.y = rand() %200 + 150;
+           TopPillarPosition3.y = BotPillarPosition3.y - 400;
       }
 
 
