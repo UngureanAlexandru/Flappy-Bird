@@ -138,6 +138,23 @@ BotPillarPosition.y = 200;
 BotPillarPosition.w = 100;
 BotPillarPosition.h = 250;
 
+
+//////////////////////////////////
+
+SDL_Rect TopPillarPosition2;
+TopPillarPosition2.x = 800;
+TopPillarPosition2.y = -200;
+TopPillarPosition2.w = 100;
+TopPillarPosition2.h = 250;
+
+SDL_Rect BotPillarPosition2;
+BotPillarPosition2.x = 800;
+BotPillarPosition2.y = 200;
+BotPillarPosition2.w = 100;
+BotPillarPosition2.h = 250;
+
+////////////////////////
+
   images[2].offset.x = 100;
   images[2].offset.y = 0;
   images[2].offset.w = 100;
@@ -160,6 +177,9 @@ BotPillarPosition.h = 250;
 
        TopPillarPosition.x--;
        BotPillarPosition.x--;
+
+       TopPillarPosition2.x--;
+       BotPillarPosition2.x--;
 
   if (jumpForce > 0)
   jumpForce--;
@@ -211,8 +231,10 @@ else
       SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition3);
 
  SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition,180,NULL,SDL_FLIP_NONE );
-
  SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition,0,NULL,SDL_FLIP_NONE );
+
+  SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition2,180,NULL,SDL_FLIP_NONE );
+ SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition2,0,NULL,SDL_FLIP_NONE );
 
 
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition1);
@@ -238,6 +260,25 @@ else
       {
          TopBackgroundPosition3.x += 1400;
          BotBackgroundPosition3.x += 1400;
+      }
+
+      if (TopPillarPosition.x < -100)
+      {
+           TopPillarPosition.x += 900;
+           BotPillarPosition.x += 900;
+
+           BotPillarPosition.y = rand() %200 + 100;
+           TopPillarPosition.y = BotPillarPosition.y - 400;
+      }
+
+
+      if (TopPillarPosition2.x < -100)
+      {
+           TopPillarPosition2.x += 900;
+           BotPillarPosition2.x += 900;
+
+           BotPillarPosition2.y = rand() %200 + 100;
+           TopPillarPosition2.y = BotPillarPosition2.y - 400;
       }
 
 
@@ -281,24 +322,3 @@ InGame(images,event,render);
 
     return 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
