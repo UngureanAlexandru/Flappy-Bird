@@ -1,209 +1,304 @@
 #include <iostream>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-//#include <thread>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 
-//WINDOWS_KEY_WORD -> pentru windows
+#define numberOfImages 4
 
 using namespace std;
 
-void RefreshGameMap(char gameMap[20][70])
+struct image
 {
-cout<<endl<<endl;
-    for (int i = 0;i < 20;i++)
+   SDL_Surface* gameImage;
+   SDL_Rect offset;
+   SDL_Texture* texture;
+};
+
+void ExitGame(image images[],SDL_Renderer* &render)
+{
+   for (int i=0;i<numberOfImages;i++)
+   SDL_FreeSurface(images[i].gameImage);
+
+   SDL_DestroyRenderer(render);
+
+   SDL_Quit();
+   IMG_Quit();
+}
+
+int ReadKeys(SDL_Event event,int gameScene)
+{
+    if (SDL_PollEvent(&event))
     {
-        for (int j=0;j<70;j++)
-        cout<<gameMap[i][j];
-        cout<<endl;
+
+    if (event.type == SDL_KEYDOWN)
+    {
+       if (event.key.keysym.sym == SDLK_SPACE && gameScene == 1)
+        {
+           return 3;
+        }
+
+         if (event.key.keysym.sym == SDLK_ESCAPE)
+        {
+           return 9;
+        }
+    }
+
+
     }
 }
 
-void clearGameMap(char gameMap[20][70])
+void LoadImages(image images[],SDL_Renderer* render)
 {
-    for (int i = 1;i < 19;i++)
-    {
-        for (int j=0;j<70;j++)
-       gameMap[i][j] = ' ';
-    }
-}
+   images[0].gameImage = IMG_Load("TopBackground.png");
+   images[0].texture = SDL_CreateTextureFromSurface(render,images[0].gameImage);
 
+   images[1].gameImage = IMG_Load("BotBackground.png");
+   images[1].texture = SDL_CreateTextureFromSurface(render,images[1].gameImage);
 
-char readKey()
-{
-   int key;
-   cin>>key;
-   return key;
-}
+   images[2].gameImage = IMG_Load("Bird.png");
+   images[2].texture = SDL_CreateTextureFromSurface(render,images[2].gameImage);
 
-void Start()
-{
-
-bool gameIsActive = true;
-
-int posX = 5,posY = 10;
-
-char gameMap[20][70];
-
- for (int i = 0;i < 20;i++)
-        for (int j=0;j<70;j++)
-        gameMap[i][j] = ' ';
-
-for (int i=0;i<70;i++)
-{
-   gameMap[0][i] = '#';
-   gameMap[19][i] = '#';
-}
-
-
-gameMap[posY][posX] = '@';
-
-
-while(gameIsActive)
-{
-
-//thread GetKey(readKey);
-
-if (posY < 18)
-posY++;
-clearGameMap(gameMap);
-           gameMap[posY][posX] = '@';
-            RefreshGameMap(gameMap);
-char key;
-cin>>key;
-
-    if (key == 'f')
-    {
-
-       for (int i=0;i< 5 && posY > 1;i++)
-       {
-           posY--;
-           usleep(100000);
-
-
-           clearGameMap(gameMap);
-           gameMap[posY][posX] = '@';
-            RefreshGameMap(gameMap);
-       }
-
-        for (int i=0;i< 5 && posY < 18;i++)
-       {
-           posY++;
-           usleep(100000);
-
-            clearGameMap(gameMap);
-           gameMap[posY][posX] = '@';
-            RefreshGameMap(gameMap);
-       }
-
-
-    }
-
- RefreshGameMap(gameMap);
-
+   images[3].gameImage = IMG_Load("Pillar.png");
+   images[3].texture = SDL_CreateTextureFromSurface(render,images[3].gameImage);
 }
 
 
 
-}
-
-void Leaderboard()
+void FirstTimeSettings(image images[],SDL_Renderer* &render)
 {
+SDL_Init(SDL_INIT_EVERYTHING);
 
-}
+SDL_Window* screen = SDL_CreateWindow("Flappy Bird",0,0,700,400,SDL_WINDOW_SHOWN);
 
-int  Exit()
-{
+     render = SDL_CreateRenderer(screen,-1,SDL_RENDERER_ACCELERATED);
+     SDL_SetRenderDrawColor( render, 0xFF, 0xFF, 0xFF, 0xFF );
 
-}
-
-
-
-
-
-void Menu()
-{
-
-
-char menuText[10][100] = {{"Start"},{"Leaderboard"},{"Exit"}};
-bool menuIsActive = true;
-
-char key;
-
-int menuIndex = -1,OptionsNumber = 3,menuOptionsLength[3] = { strlen(menuText[0]),strlen(menuText[1]),strlen(menuText[2])};
-
-
-while(menuIsActive)
-{
-cin>>key;
-
-
-
-
-
-//a = 0 etc...
-if (key == 'a' || key == 's' || key == 'd')
+   for (int i = 0;i < numberOfImages;i++)
    {
-
-   for (int i = 0;i<OptionsNumber;i++)
-       {
-            menuText[i][menuOptionsLength[i] + 1] = ' ';
-       }
-
-    if (key == 'a')
-    {
-       menuIndex = 0;
-    }
-    else if (key == 's')
-    {
-       menuIndex = 1;
-    }
-    else if (key == 'd')
-    {
-       menuIndex = 2;
-    }
-
- menuText[menuIndex][menuOptionsLength[menuIndex] + 1] = '#';
-
-
-
-cout<<endl<<endl<<endl<<endl<<endl;
-cout<<"                      ===> Flappy Bird <==="<<endl;
-cout<<endl<<endl<<endl;
-
-       for (int i=0;i<10;i++)
-       {
-       cout<<"                      ";
-           for (int j=0;j<100;j++)
-           cout<<menuText[i][j];
-           cout<<endl;
-       }
+      images[i].gameImage = NULL;
+      images[i].offset.x = 0;
+      images[i].offset.y = 0;
+      images[i].texture = NULL;
    }
-   else if (key == 'w')
+}
+
+
+void InGame(image images[],SDL_Event event,SDL_Renderer* render)
+{
+
+SDL_Rect TopBackgroundPosition1;
+TopBackgroundPosition1.x = 0;
+TopBackgroundPosition1.y = 0;
+TopBackgroundPosition1.w = 700;
+TopBackgroundPosition1.h = 400;
+
+SDL_Rect TopBackgroundPosition2;
+TopBackgroundPosition2.x = 460;
+TopBackgroundPosition2.y = 0;
+TopBackgroundPosition2.w = 700;
+TopBackgroundPosition2.h = 400;
+
+SDL_Rect TopBackgroundPosition3;
+TopBackgroundPosition3.x = 920;
+TopBackgroundPosition3.y = 0;
+TopBackgroundPosition3.w = 700;
+TopBackgroundPosition3.h = 400;
+
+////////////////
+
+SDL_Rect BotBackgroundPosition1;
+BotBackgroundPosition1.x = 0;
+BotBackgroundPosition1.y = 350;
+BotBackgroundPosition1.w = 700;
+BotBackgroundPosition1.h = 100;
+
+SDL_Rect BotBackgroundPosition2;
+BotBackgroundPosition2.x = 460;
+BotBackgroundPosition2.y = 350;
+BotBackgroundPosition2.w = 700;
+BotBackgroundPosition2.h = 100;
+
+SDL_Rect BotBackgroundPosition3;
+BotBackgroundPosition3.x = 920;
+BotBackgroundPosition3.y = 350;
+BotBackgroundPosition3.w = 700;
+BotBackgroundPosition3.h = 100;
+
+
+///////////////
+
+SDL_Rect TopPillarPosition;
+TopPillarPosition.x = 500;
+TopPillarPosition.y = -200;
+TopPillarPosition.w = 100;
+TopPillarPosition.h = 250;
+
+SDL_Rect BotPillarPosition;
+BotPillarPosition.x = 500;
+BotPillarPosition.y = 200;
+BotPillarPosition.w = 100;
+BotPillarPosition.h = 250;
+
+  images[2].offset.x = 100;
+  images[2].offset.y = 0;
+  images[2].offset.w = 100;
+  images[2].offset.h = 70;
+
+   int jumpForce = 0;
+   int ResetBirdAngle = 0;
+
+   int BirdRotationAngle = 0;
+
+   while(1)
    {
-   menuIsActive = false;
+       TopBackgroundPosition1.x--;
+       TopBackgroundPosition2.x--;
+       TopBackgroundPosition3.x--;
 
-      if (menuIndex == 0)
-      Start();
+       BotBackgroundPosition1.x--;
+       BotBackgroundPosition2.x--;
+       BotBackgroundPosition3.x--;
 
-      if (menuIndex == 1)
-      Leaderboard();
+       TopPillarPosition.x--;
+       BotPillarPosition.x--;
 
-      if (menuIndex == 2)
-      Exit();
+  if (jumpForce > 0)
+  jumpForce--;
+
+  images[2].offset.y-=jumpForce;
+
+
+
+if (images[2].offset.y < 310)
+{
+   images[2].offset.y += 2;
+}
+else
+{
+   cout<<"Ai pierdut"<<endl;
+}
+
+
+
+       if (ReadKeys(event,1) == 3 && images[2].offset.y > 50)
+       {
+          jumpForce += 15;
+           BirdRotationAngle = -45;
+       }
+
+       if (ReadKeys(event,1) == 9)
+       {
+          //ExitGame(images,render);
+           jumpForce += 30;
+           BirdRotationAngle = -45;
+       }
+
+       if (ResetBirdAngle < 10 && BirdRotationAngle != 0)
+       {
+          ResetBirdAngle++;
+       }
+       else if (ResetBirdAngle >= 10 && BirdRotationAngle != 0)
+       {
+          ResetBirdAngle = 0;
+          BirdRotationAngle = 0;
+       }
+
+
+
+      SDL_RenderClear( render );
+
+      SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition1);
+      SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition2);
+      SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition3);
+
+ SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition,180,NULL,SDL_FLIP_NONE );
+
+ SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition,0,NULL,SDL_FLIP_NONE );
+
+
+      SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition1);
+      SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition2);
+      SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition3);
+
+      if (TopBackgroundPosition1.x < -700)
+      {
+         TopBackgroundPosition1.x += 1400;
+         BotBackgroundPosition1.x += 1400;
+      }
+
+
+
+      if (TopBackgroundPosition2.x < -700)
+      {
+         TopBackgroundPosition2.x += 1400;
+         BotBackgroundPosition2.x += 1400;
+      }
+
+
+      if (TopBackgroundPosition3.x < -700)
+      {
+         TopBackgroundPosition3.x += 1400;
+         BotBackgroundPosition3.x += 1400;
+      }
+
+
+      SDL_RenderCopyEx( render, images[2].texture, NULL, &images[2].offset,BirdRotationAngle,NULL,SDL_FLIP_NONE );
+
+
+      SDL_RenderPresent( render );
+
+      SDL_Delay(10);
    }
 
-
-//loop end here
 }
 
+void InLeaderboard()
+{
 }
 
+
+void InMenu()
+{
+
+}
 
 
 
 int main()
 {
-    Menu();
+
+// 0 = Menu, 1 = Game, 2 = Leaderboard
+int gameScene = 0;
+
+image images[numberOfImages];
+SDL_Event event;
+SDL_Renderer* render = NULL;
+
+FirstTimeSettings(images,render);
+
+LoadImages(images,render);
+
+InGame(images,event,render);
+
     return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
