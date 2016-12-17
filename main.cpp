@@ -82,6 +82,25 @@ SDL_Window* screen = SDL_CreateWindow("Flappy Bird",0,0,700,400,SDL_WINDOW_SHOWN
 }
 
 
+bool CheckCollision(image images[],SDL_Rect pillars[])
+{
+     for (int i=0;i<6;i++)
+     {
+         if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x < pillars[i].x+100)
+         {
+             if (i%2==0 || i == 0)
+             if(images[2].offset.y+10 < pillars[i].y+250)
+             return true;
+
+             if (i%2==1)
+             if(images[2].offset.y+30 > pillars[i].y)
+             return true;
+         }
+
+     }
+     return false;
+}
+
 void InGame(image images[],SDL_Event event,SDL_Renderer* render)
 {
 
@@ -169,6 +188,8 @@ BotPillarPosition3.h = 250;
 
 ////////////////
 
+
+
   images[2].offset.x = 100;
   images[2].offset.y = 0;
   images[2].offset.w = 100;
@@ -179,7 +200,11 @@ BotPillarPosition3.h = 250;
 
    int BirdRotationAngle = 0;
 
+   bool alive = true;
+
    while(1)
+   {
+   if (alive)
    {
        TopBackgroundPosition1.x--;
        TopBackgroundPosition2.x--;
@@ -197,6 +222,17 @@ BotPillarPosition3.h = 250;
 
        TopPillarPosition3.x--;
        BotPillarPosition3.x--;
+   }
+
+
+SDL_Rect pillars[6] = {TopPillarPosition,BotPillarPosition,TopPillarPosition2,BotPillarPosition2,TopPillarPosition3,BotPillarPosition3};
+
+if (CheckCollision(images,pillars) == true)
+{
+   cout<<"Am intrat intr-un stalp"<<endl;
+   alive = false;
+}
+
 
   if (jumpForce > 0)
   jumpForce--;
@@ -212,11 +248,12 @@ if (images[2].offset.y < 310)
 else
 {
    cout<<"Ai pierdut"<<endl;
+   alive = false;
 }
 
 
 
-       if (ReadKeys(event,1) == 3 && images[2].offset.y > 50)
+       if (ReadKeys(event,1) == 3 && images[2].offset.y > 30 && alive)
        {
           jumpForce += 15;
            BirdRotationAngle = -45;
