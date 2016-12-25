@@ -2,7 +2,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
-#define numberOfImages 4
+#define SCREEN_TICKS_PER_FRAME  1000/60;
+#define numberOfImages 7
 
 using namespace std;
 
@@ -59,6 +60,17 @@ void LoadImages(image images[],SDL_Renderer* render)
 
    images[3].gameImage = IMG_Load("Pillar.png");
    images[3].texture = SDL_CreateTextureFromSurface(render,images[3].gameImage);
+
+
+   images[4].gameImage = IMG_Load("Speed_2.png");
+   images[4].texture = SDL_CreateTextureFromSurface(render,images[4].gameImage);
+
+   images[5].gameImage = IMG_Load("SpeedX2.png");
+   images[5].texture = SDL_CreateTextureFromSurface(render,images[5].gameImage);
+
+   images[6].gameImage = IMG_Load("Invincibility.png");
+   images[6].texture = SDL_CreateTextureFromSurface(render,images[6].gameImage);
+
 }
 
 
@@ -82,27 +94,57 @@ SDL_Window* screen = SDL_CreateWindow("Flappy Bird",0,0,700,400,SDL_WINDOW_SHOWN
 }
 
 
-bool CheckCollision(image images[],SDL_Rect pillars[])
+int CheckCollision(image images[],SDL_Rect pillars[])
 {
-     for (int i=0;i<6;i++)
+     for (int i=0;i<numberOfImages;i++)
      {
-         if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x < pillars[i].x+100)
+
+          if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x < pillars[i].x+100)
          {
              if (i%2==0 || i == 0)
              if(images[2].offset.y+10 < pillars[i].y+250)
-             return true;
+             return 1;
 
              if (i%2==1)
              if(images[2].offset.y+30 > pillars[i].y)
-             return true;
+             return 1;
          }
 
+           ///////////////// Speed / 2 /////////
+
+          if ((images[2].offset.x+75 > images[4].offset.x) && (images[2].offset.x < images[4].offset.x+100))
+         {
+             if((images[2].offset.y < images[4].offset.y+30) && (images[2].offset.y+70 > images[4].offset.y))
+             return 4;
+         }
+
+
+          ///////////////// Speed X 2 /////////
+
+          if ((images[2].offset.x+75 > images[5].offset.x) && (images[2].offset.x < images[5].offset.x+100))
+         {
+             if((images[2].offset.y < images[5].offset.y+30) && (images[2].offset.y+30 > images[5].offset.y))
+             return 5;
+         }
+
+
+          ///////////////// Invincibility /////////
+
+          if ((images[2].offset.x+75 > images[6].offset.x) && (images[2].offset.x < images[6].offset.x+100))
+         {
+             if((images[2].offset.y < images[6].offset.y+30) && (images[2].offset.y+30 > images[6].offset.y))
+             return 6;
+         }
+
+
+
      }
-     return false;
+     return 0;
 }
 
 void InGame(image images[],SDL_Event event,SDL_Renderer* render)
 {
+
 
 SDL_Rect TopBackgroundPosition1;
 TopBackgroundPosition1.x = 0;
@@ -188,6 +230,12 @@ BotPillarPosition3.h = 250;
 
 ////////////////
 
+SDL_Rect PowerUpPos;
+PowerUpPos.x = 1100;
+PowerUpPos.y = 150;
+PowerUpPos.w = 100;
+PowerUpPos.h = 30;
+
 
 
   images[2].offset.x = 100;
@@ -200,37 +248,112 @@ BotPillarPosition3.h = 250;
 
    int BirdRotationAngle = 0;
 
-   bool alive = true;
+   bool alive = true,bugFixer = false,invincible = false;
+   int seconds = 0,timer = 0,powerUpIndex = -1,speed = 1,delayTime = 10;
+
+   int invincibleStopTime = 0;
+   int lastRandom = -1;
 
    while(1)
    {
-   if (alive)
+
+   if (invincibleStopTime == seconds)
    {
-       TopBackgroundPosition1.x--;
-       TopBackgroundPosition2.x--;
-       TopBackgroundPosition3.x--;
-
-       BotBackgroundPosition1.x--;
-       BotBackgroundPosition2.x--;
-       BotBackgroundPosition3.x--;
-
-       TopPillarPosition.x--;
-       BotPillarPosition.x--;
-
-       TopPillarPosition2.x--;
-       BotPillarPosition2.x--;
-
-       TopPillarPosition3.x--;
-       BotPillarPosition3.x--;
+      invincible = false;
+      invincibleStopTime = 0;
+      powerUpIndex = -1;
    }
 
 
-SDL_Rect pillars[6] = {TopPillarPosition,BotPillarPosition,TopPillarPosition2,BotPillarPosition2,TopPillarPosition3,BotPillarPosition3};
+   if (bugFixer && seconds % 5 != 0)
+   bugFixer = false;
 
-if (CheckCollision(images,pillars) == true)
+   if (alive)
+   {
+   timer++;
+   if (timer == 100)
+   {
+      timer = 0;
+      seconds++;
+      cout<<seconds<<endl;
+   }
+
+   if (seconds % 5 == 0 && powerUpIndex == -1 && bugFixer == false)
+   {
+   int x = rand()%3 + 4;
+
+   while(x == lastRandom)
+   {
+   x = rand()%3 + 4;
+   }
+      powerUpIndex = x;
+      PowerUpPos.x = 1100;
+      cout<<"Numar Random: "<<powerUpIndex<<endl;
+      lastRandom = x;
+   }
+
+       TopBackgroundPosition1.x -= speed;
+       TopBackgroundPosition2.x -= speed;
+       TopBackgroundPosition3.x -= speed;
+
+       BotBackgroundPosition1.x -= speed;
+       BotBackgroundPosition2.x -= speed;
+       BotBackgroundPosition3.x -= speed;
+
+       TopPillarPosition.x -= speed;
+       BotPillarPosition.x -= speed;
+
+       TopPillarPosition2.x -= speed;
+       BotPillarPosition2.x -= speed;
+
+       TopPillarPosition3.x -= speed;
+       BotPillarPosition3.x -= speed;
+   }
+
+
+SDL_Rect pillars[6] = {
+TopPillarPosition,BotPillarPosition,
+TopPillarPosition2,BotPillarPosition2,
+TopPillarPosition3,BotPillarPosition3
+};
+
+if (CheckCollision(images,pillars) == 1 && alive && invincible == false)
 {
    cout<<"Am intrat intr-un stalp"<<endl;
    alive = false;
+}
+
+if (CheckCollision(images,pillars) == 4 && powerUpIndex != -1)
+{
+  powerUpIndex = -1;
+  delayTime = 20;
+
+  if (seconds % 5 == 0)
+  {
+     bugFixer = true;
+  }
+}
+
+if ((CheckCollision(images,pillars) == 5) && (powerUpIndex != -1))
+{
+  powerUpIndex = -1;
+  speed = speed * 2;
+
+  if (seconds % 5 == 0)
+  {
+     bugFixer = true;
+  }
+}
+
+if (CheckCollision(images,pillars) == 6 && powerUpIndex != -1)
+{
+  invincible = true;
+  invincibleStopTime = seconds + 10;
+
+  if (seconds % 5 == 0)
+  {
+     bugFixer = true;
+  }
 }
 
 
@@ -245,7 +368,7 @@ if (images[2].offset.y < 310)
 {
    images[2].offset.y += 2;
 }
-else
+else if (alive)
 {
    cout<<"Ai pierdut"<<endl;
    alive = false;
@@ -284,19 +407,26 @@ else
       SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition2);
       SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition3);
 
- SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition,180,NULL,SDL_FLIP_NONE );
- SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition,0,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition,180,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition,0,NULL,SDL_FLIP_NONE );
 
-  SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition2,180,NULL,SDL_FLIP_NONE );
- SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition2,0,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition2,180,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition2,0,NULL,SDL_FLIP_NONE );
 
-   SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition3,180,NULL,SDL_FLIP_NONE );
- SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition3,0,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &TopPillarPosition3,180,NULL,SDL_FLIP_NONE );
+      SDL_RenderCopyEx( render, images[3].texture, NULL, &BotPillarPosition3,0,NULL,SDL_FLIP_NONE );
 
 
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition1);
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition2);
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition3);
+
+      if (alive)
+      {
+          PowerUpPos.x -= speed;
+          images[powerUpIndex].offset = PowerUpPos;
+          SDL_RenderCopy( render, images[powerUpIndex].texture, NULL, &PowerUpPos);
+      }
 
       if (TopBackgroundPosition1.x < -700)
       {
@@ -353,7 +483,8 @@ else
 
       SDL_RenderPresent( render );
 
-      SDL_Delay(10);
+        SDL_Delay(delayTime);
+
    }
 
 }
