@@ -93,13 +93,15 @@ SDL_Window* screen = SDL_CreateWindow("Flappy Bird",0,0,700,400,SDL_WINDOW_SHOWN
    }
 }
 
+SDL_Rect nullRect;
 
-int CheckCollision(image images[],SDL_Rect pillars[])
+
+int CheckCollision(image images[],SDL_Rect pillars[],SDL_Rect powerUp = nullRect)
 {
      for (int i=0;i<numberOfImages;i++)
      {
 
-          if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x < pillars[i].x+100)
+          if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x+30 < pillars[i].x+100)
          {
              if (i%2==0 || i == 0)
              if(images[2].offset.y+10 < pillars[i].y+250)
@@ -112,29 +114,11 @@ int CheckCollision(image images[],SDL_Rect pillars[])
 
            ///////////////// Speed / 2 /////////
 
-          if ((images[2].offset.x+75 > images[4].offset.x) && (images[2].offset.x < images[4].offset.x+100))
+          if ((images[2].offset.x+70 > powerUp.x) && (images[2].offset.x < powerUp.x+100) && (images[2].offset.y < powerUp.y+30) && (images[2].offset.y+70 > powerUp.y))
          {
-             if((images[2].offset.y < images[4].offset.y+30) && (images[2].offset.y+70 > images[4].offset.y))
-             return 4;
+             return 2;
          }
 
-
-          ///////////////// Speed X 2 /////////
-
-          if ((images[2].offset.x+75 > images[5].offset.x) && (images[2].offset.x < images[5].offset.x+100))
-         {
-             if((images[2].offset.y < images[5].offset.y+30) && (images[2].offset.y+30 > images[5].offset.y))
-             return 5;
-         }
-
-
-          ///////////////// Invincibility /////////
-
-          if ((images[2].offset.x+75 > images[6].offset.x) && (images[2].offset.x < images[6].offset.x+100))
-         {
-             if((images[2].offset.y < images[6].offset.y+30) && (images[2].offset.y+30 > images[6].offset.y))
-             return 6;
-         }
 
 
 
@@ -257,6 +241,7 @@ PowerUpPos.h = 30;
    while(1)
    {
 
+
    if (invincibleStopTime == seconds)
    {
       invincible = false;
@@ -270,6 +255,8 @@ PowerUpPos.h = 30;
 
    if (alive)
    {
+
+
    timer++;
    if (timer == 100)
    {
@@ -278,17 +265,19 @@ PowerUpPos.h = 30;
       cout<<seconds<<endl;
    }
 
-   if (seconds % 5 == 0 && powerUpIndex == -1 && bugFixer == false)
+   if (seconds % 5 == 0 && powerUpIndex == -1 && bugFixer == false && seconds != 0)
    {
-   int x = rand()%3 + 4;
+
+   PowerUpPos.x = 1100;
+
+   int x = rand()%3+4;
 
    while(x == lastRandom)
    {
-   x = rand()%3 + 4;
+   x = rand()%3+4;
    }
       powerUpIndex = x;
-      PowerUpPos.x = 1100;
-      cout<<"Numar Random: "<<powerUpIndex<<endl;
+
       lastRandom = x;
    }
 
@@ -323,10 +312,28 @@ if (CheckCollision(images,pillars) == 1 && alive && invincible == false)
    alive = false;
 }
 
-if (CheckCollision(images,pillars) == 4 && powerUpIndex != -1)
+if (CheckCollision(images,pillars,PowerUpPos) == 2 && powerUpIndex != -1)
 {
+
+   if (powerUpIndex == 4)
+   {
+     delayTime *= 2;
+     cout<<"Delay "<<delayTime<<endl;
+   }
+
+   if (powerUpIndex == 5)
+   {
+      speed *= 2;
+      cout<<"Speed "<<speed<<endl;
+   }
+
+   if (powerUpIndex == 6)
+   {
+     invincible = true;
+     invincibleStopTime = seconds + 10;
+   }
   powerUpIndex = -1;
-  delayTime = 20;
+
 
   if (seconds % 5 == 0)
   {
@@ -334,27 +341,8 @@ if (CheckCollision(images,pillars) == 4 && powerUpIndex != -1)
   }
 }
 
-if ((CheckCollision(images,pillars) == 5) && (powerUpIndex != -1))
-{
-  powerUpIndex = -1;
-  speed = speed * 2;
 
-  if (seconds % 5 == 0)
-  {
-     bugFixer = true;
-  }
-}
 
-if (CheckCollision(images,pillars) == 6 && powerUpIndex != -1)
-{
-  invincible = true;
-  invincibleStopTime = seconds + 10;
-
-  if (seconds % 5 == 0)
-  {
-     bugFixer = true;
-  }
-}
 
 
   if (jumpForce > 0)
@@ -421,7 +409,7 @@ else if (alive)
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition2);
       SDL_RenderCopy( render, images[1].texture, NULL, &BotBackgroundPosition3);
 
-      if (alive)
+      if (alive && powerUpIndex != -1)
       {
           PowerUpPos.x -= speed;
           images[powerUpIndex].offset = PowerUpPos;
@@ -506,6 +494,11 @@ int main()
 
 // 0 = Menu, 1 = Game, 2 = Leaderboard
 int gameScene = 0;
+
+nullRect.x = 0;
+nullRect.y = 0;
+nullRect.w = 0;
+nullRect.h = 0;
 
 image images[numberOfImages];
 SDL_Event event;
