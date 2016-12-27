@@ -1,11 +1,23 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <fstream>
 
 #define SCREEN_TICKS_PER_FRAME  1000/60;
-#define numberOfImages 7
+#define numberOfImages 9
+
+
 
 using namespace std;
+
+
+ifstream read("Data.txt");
+ofstream write("Data.txt");
+
+
+
+
+int key;
 
 struct image
 {
@@ -13,6 +25,9 @@ struct image
    SDL_Rect offset;
    SDL_Texture* texture;
 };
+
+void InMenu(image images[],SDL_Event event,SDL_Renderer* render);
+void InGame(image images[],SDL_Event event,SDL_Renderer* render);
 
 void ExitGame(image images[],SDL_Renderer* &render)
 {
@@ -22,29 +37,52 @@ void ExitGame(image images[],SDL_Renderer* &render)
    SDL_DestroyRenderer(render);
 
    SDL_Quit();
-   IMG_Quit();
 }
 
-int ReadKeys(SDL_Event event,int gameScene)
+void ReadKeys(SDL_Event event,int gameScene)
 {
     if (SDL_PollEvent(&event))
     {
 
     if (event.type == SDL_KEYDOWN)
     {
-       if (event.key.keysym.sym == SDLK_SPACE && gameScene == 1)
+
+
+       switch(event.key.keysym.sym)
+       {
+
+           case SDLK_SPACE:
+           {
+              key = 3;
+              break;
+           }
+
+
+           case SDLK_w:
+           {
+              key = 1;
+              break;
+           }
+
+            case SDLK_s:
+           {
+               key =  2;
+              break;
+           }
+
+
+        case SDLK_ESCAPE:
         {
-           return 3;
+            key =  9;
+           break;
         }
 
-         if (event.key.keysym.sym == SDLK_ESCAPE)
-        {
-           return 9;
-        }
+       }
     }
 
 
     }
+
 }
 
 void LoadImages(image images[],SDL_Renderer* render)
@@ -70,6 +108,13 @@ void LoadImages(image images[],SDL_Renderer* render)
 
    images[6].gameImage = IMG_Load("Invincibility.png");
    images[6].texture = SDL_CreateTextureFromSurface(render,images[6].gameImage);
+
+   images[7].gameImage = IMG_Load("Menu.png");
+   images[7].texture = SDL_CreateTextureFromSurface(render,images[7].gameImage);
+
+   images[8].gameImage = IMG_Load("Arrow.png");
+   images[8].texture = SDL_CreateTextureFromSurface(render,images[8].gameImage);
+
 
 }
 
@@ -308,7 +353,6 @@ TopPillarPosition3,BotPillarPosition3
 
 if (CheckCollision(images,pillars) == 1 && alive && invincible == false)
 {
-   cout<<"Am intrat intr-un stalp"<<endl;
    alive = false;
 }
 
@@ -358,23 +402,22 @@ if (images[2].offset.y < 310)
 }
 else if (alive)
 {
-   cout<<"Ai pierdut"<<endl;
    alive = false;
 }
 
 
-
-       if (ReadKeys(event,1) == 3 && images[2].offset.y > 30 && alive)
+ReadKeys(event,1);
+       if (key == 3 && images[2].offset.y > 30 && alive)
        {
+       key = 0;
           jumpForce += 15;
            BirdRotationAngle = -45;
        }
 
-       if (ReadKeys(event,1) == 9)
+       if (key == 9)
        {
-          //ExitGame(images,render);
-           jumpForce += 30;
-           BirdRotationAngle = -45;
+       key = 0;
+         ExitGame(images,render);
        }
 
        if (ResetBirdAngle < 10 && BirdRotationAngle != 0)
@@ -471,6 +514,12 @@ else if (alive)
 
       SDL_RenderPresent( render );
 
+      if (alive == false)
+      {
+      SDL_Delay(2000);
+        ExitGame(images,render);
+      }
+
         SDL_Delay(delayTime);
 
    }
@@ -482,8 +531,108 @@ void InLeaderboard()
 }
 
 
-void InMenu()
+void InMenu(image images[],SDL_Event event,SDL_Renderer* render)
 {
+
+SDL_Rect MenuPosition;
+MenuPosition.x = 0;
+MenuPosition.y = 0;
+MenuPosition.w = 700;
+MenuPosition.h = 400;
+
+SDL_Rect ArrowPosition;
+ArrowPosition.x = 100;
+ArrowPosition.y = 100;
+ArrowPosition.w = 70;
+ArrowPosition.h = 100;
+
+
+
+int ArrowPositionIndex = 0;
+bool canSwich = true;
+bool active = true;
+
+   while(active)
+   {
+   canSwich = true;
+   cout<<ArrowPositionIndex<<endl;
+   SDL_RenderClear(render);
+
+   SDL_RenderCopy(render,images[7].texture,NULL,&MenuPosition);
+
+   ReadKeys(event,0);
+
+      if (key == 9)
+          ExitGame(images,render);
+
+
+      if (key == 1 && ArrowPositionIndex > 0 && canSwich)
+      {
+      key = 0;
+         ArrowPositionIndex--;
+         canSwich = false;
+      }
+
+      if (key == 2 && ArrowPositionIndex < 2 && canSwich)
+      {
+      key = 0;
+         ArrowPositionIndex++;
+         canSwich = false;
+      }
+
+      if (key == 3)
+      {
+        key = 0;
+
+        if (ArrowPositionIndex == 0)
+        {
+           InGame(images,event,render);
+        }
+
+        if (ArrowPositionIndex == 1)
+        {
+
+        }
+
+        if (ArrowPositionIndex == 2)
+        {
+        active = false;
+           ExitGame(images,render);
+        }
+
+
+      }
+
+      if (ArrowPositionIndex == 0)
+      {
+         ArrowPosition.x = 160;
+         ArrowPosition.y = 150;
+         ArrowPosition.w = 100;
+         ArrowPosition.h = 70;
+      }
+
+       if (ArrowPositionIndex == 1)
+      {
+         ArrowPosition.x = 80;
+         ArrowPosition.y = 240;
+         ArrowPosition.w = 100;
+         ArrowPosition.h = 70;
+      }
+
+       if (ArrowPositionIndex == 2)
+      {
+         ArrowPosition.x = 190;
+         ArrowPosition.y = 320;
+         ArrowPosition.w = 100;
+         ArrowPosition.h = 70;
+      }
+
+       SDL_RenderCopy(render,images[8].texture,NULL,&ArrowPosition);
+
+      SDL_RenderPresent(render);
+
+      SDL_Delay(10);
+   }
 
 }
 
@@ -493,7 +642,7 @@ int main()
 {
 
 // 0 = Menu, 1 = Game, 2 = Leaderboard
-int gameScene = 0;
+
 
 nullRect.x = 0;
 nullRect.y = 0;
@@ -508,7 +657,8 @@ FirstTimeSettings(images,render);
 
 LoadImages(images,render);
 
-InGame(images,event,render);
+InMenu(images,event,render);
+//InGame(images,event,render);
 
     return 0;
 }
