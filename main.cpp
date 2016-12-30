@@ -2,22 +2,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <fstream>
+#include <string.h>
 
-#define SCREEN_TICKS_PER_FRAME  1000/60;
-#define numberOfImages 9
-
-
+#define numberOfImages 23
 
 using namespace std;
 
 
-ifstream read("Data.txt");
-ofstream write("Data.txt");
-
-
-
-
-int key;
+int key = 0;
 
 struct image
 {
@@ -29,6 +21,31 @@ struct image
 void InMenu(image images[],SDL_Event event,SDL_Renderer* render);
 void InGame(image images[],SDL_Event event,SDL_Renderer* render);
 
+int CreateNumber(int number,int digitsArray[])
+{
+   int digits = 0,copyOfNumber = number;
+
+   if (number == 0)
+   {
+     digitsArray[0] = 0;
+     return 1;
+   }
+
+   while(copyOfNumber)
+   {
+      digits++;
+      copyOfNumber /= 10;
+   }
+
+   for (int i=digits-1;i>=0;i--)
+   {
+      digitsArray[i] = number%10;
+      number /= 10;
+   }
+
+   return digits;
+}
+
 void ExitGame(image images[],SDL_Renderer* &render)
 {
    for (int i=0;i<numberOfImages;i++)
@@ -37,6 +54,7 @@ void ExitGame(image images[],SDL_Renderer* &render)
    SDL_DestroyRenderer(render);
 
    SDL_Quit();
+   exit (EXIT_FAILURE);
 }
 
 void ReadKeys(SDL_Event event,int gameScene)
@@ -51,7 +69,7 @@ void ReadKeys(SDL_Event event,int gameScene)
        switch(event.key.keysym.sym)
        {
 
-           case SDLK_SPACE:
+           case SDLK_d:
            {
               key = 3;
               break;
@@ -115,6 +133,47 @@ void LoadImages(image images[],SDL_Renderer* render)
    images[8].gameImage = IMG_Load("Arrow.png");
    images[8].texture = SDL_CreateTextureFromSurface(render,images[8].gameImage);
 
+   images[9].gameImage = IMG_Load("GameOver.png");
+   images[9].texture = SDL_CreateTextureFromSurface(render,images[9].gameImage);
+
+   images[10].gameImage = IMG_Load("0.png");
+   images[10].texture = SDL_CreateTextureFromSurface(render,images[10].gameImage);
+
+   images[11].gameImage = IMG_Load("1.png");
+   images[11].texture = SDL_CreateTextureFromSurface(render,images[11].gameImage);
+
+   images[12].gameImage = IMG_Load("2.png");
+   images[12].texture = SDL_CreateTextureFromSurface(render,images[12].gameImage);
+
+   images[13].gameImage = IMG_Load("3.png");
+   images[13].texture = SDL_CreateTextureFromSurface(render,images[13].gameImage);
+
+   images[14].gameImage = IMG_Load("4.png");
+   images[14].texture = SDL_CreateTextureFromSurface(render,images[14].gameImage);
+
+   images[15].gameImage = IMG_Load("5.png");
+   images[15].texture = SDL_CreateTextureFromSurface(render,images[15].gameImage);
+
+   images[16].gameImage = IMG_Load("6.png");
+   images[16].texture = SDL_CreateTextureFromSurface(render,images[16].gameImage);
+
+   images[17].gameImage = IMG_Load("7.png");
+   images[17].texture = SDL_CreateTextureFromSurface(render,images[17].gameImage);
+
+   images[18].gameImage = IMG_Load("8.png");
+   images[18].texture = SDL_CreateTextureFromSurface(render,images[18].gameImage);
+
+   images[19].gameImage = IMG_Load("9.png");
+   images[19].texture = SDL_CreateTextureFromSurface(render,images[19].gameImage);
+
+   images[20].gameImage = IMG_Load("LeaderboardText.png");
+   images[20].texture = SDL_CreateTextureFromSurface(render,images[20].gameImage);
+
+   images[21].gameImage = IMG_Load("SimpleMenu.png");
+   images[21].texture = SDL_CreateTextureFromSurface(render,images[21].gameImage);
+
+   images[22].gameImage = IMG_Load("BiggestScore.png");
+   images[22].texture = SDL_CreateTextureFromSurface(render,images[22].gameImage);
 
 }
 
@@ -124,7 +183,7 @@ void FirstTimeSettings(image images[],SDL_Renderer* &render)
 {
 SDL_Init(SDL_INIT_EVERYTHING);
 
-SDL_Window* screen = SDL_CreateWindow("Flappy Bird",0,0,700,400,SDL_WINDOW_SHOWN);
+SDL_Window* screen = SDL_CreateWindow("Flappy Bird",300,200,700,400,SDL_WINDOW_SHOWN);
 
      render = SDL_CreateRenderer(screen,-1,SDL_RENDERER_ACCELERATED);
      SDL_SetRenderDrawColor( render, 0xFF, 0xFF, 0xFF, 0xFF );
@@ -143,36 +202,73 @@ SDL_Rect nullRect;
 
 int CheckCollision(image images[],SDL_Rect pillars[],SDL_Rect powerUp = nullRect)
 {
-     for (int i=0;i<numberOfImages;i++)
+     for (int i=0;i<6;i++)
      {
 
-          if (images[2].offset.x+75 > pillars[i].x && images[2].offset.x+30 < pillars[i].x+100)
+          if (images[2].offset.x+50 > pillars[i].x && images[2].offset.x < pillars[i].x+100)
          {
-             if (i%2==0 || i == 0)
-             if(images[2].offset.y+10 < pillars[i].y+250)
+          cout<<"Y "<<pillars[i].x<<" "<<pillars[i].y<<" Bird "<<images[2].offset.x<<" "<<images[2].offset.y<<endl;
+             if (i%2==0)
+             if(images[2].offset.y < pillars[i].y+250)
              return 1;
 
-             if (i%2==1)
-             if(images[2].offset.y+30 > pillars[i].y)
+             if (i%2!=0)
+             {
+
+             if(images[2].offset.y+40 > pillars[i].y)
              return 1;
+             }
+
+
          }
 
            ///////////////// Speed / 2 /////////
 
-          if ((images[2].offset.x+70 > powerUp.x) && (images[2].offset.x < powerUp.x+100) && (images[2].offset.y < powerUp.y+30) && (images[2].offset.y+70 > powerUp.y))
+          if ((images[2].offset.x+40 > powerUp.x) && (images[2].offset.x < powerUp.x+100) && (images[2].offset.y < powerUp.y+30) && (images[2].offset.y+40 > powerUp.y))
          {
              return 2;
          }
 
+         /////////////// Add score ////////////////////
 
+           if (images[2].offset.x > pillars[i].x && images[2].offset.x < pillars[i].x + 100)
+         {
+
+             if (i%2==0 || i == 0)
+             if(images[2].offset.y > pillars[i].y+250)
+             return 3;
+
+             if (i%2==1)
+             if(images[2].offset.y+40 < pillars[i].y)
+             return 3;
+
+
+             return 3;
+         }
+
+
+         ////////////////// Make getScore = true  //////////////
+
+         if (images[2].offset.x > pillars[i].x + 100)
+         {
+            return 4;
+         }
 
 
      }
-     return 0;
+
 }
 
 void InGame(image images[],SDL_Event event,SDL_Renderer* render)
 {
+
+
+
+SDL_Rect GameOverPos;
+GameOverPos.x = 175;
+GameOverPos.y = 100;
+GameOverPos.w = 300;
+GameOverPos.h = 100;
 
 
 SDL_Rect TopBackgroundPosition1;
@@ -265,12 +361,20 @@ PowerUpPos.y = 150;
 PowerUpPos.w = 100;
 PowerUpPos.h = 30;
 
+//////////////////
+
+SDL_Rect InGameScore;
+InGameScore.x = 20;
+InGameScore.y = 20;
+InGameScore.w = 50;
+InGameScore.h = 80;
+
 
 
   images[2].offset.x = 100;
   images[2].offset.y = 0;
-  images[2].offset.w = 100;
-  images[2].offset.h = 70;
+  images[2].offset.w = 50;
+  images[2].offset.h = 40;
 
    int jumpForce = 0;
    int ResetBirdAngle = 0;
@@ -282,12 +386,16 @@ PowerUpPos.h = 30;
 
    int invincibleStopTime = 0;
    int lastRandom = -1;
+   int lock = 0;
+
+   bool getScore = true;
+   int score = 0;
+
 
    while(1)
    {
 
-
-   if (invincibleStopTime == seconds)
+   if (invincibleStopTime == seconds && seconds > 1)
    {
       invincible = false;
       invincibleStopTime = 0;
@@ -300,10 +408,10 @@ PowerUpPos.h = 30;
 
    if (alive)
    {
-
+   int timerLimit = 100 / (delayTime / 10);
 
    timer++;
-   if (timer == 100)
+   if (timer >= timerLimit)
    {
       timer = 0;
       seconds++;
@@ -351,10 +459,23 @@ TopPillarPosition2,BotPillarPosition2,
 TopPillarPosition3,BotPillarPosition3
 };
 
-if (CheckCollision(images,pillars) == 1 && alive && invincible == false)
+if (CheckCollision(images,pillars) == 1 && alive == true && invincible == false)
 {
    alive = false;
 }
+
+
+if (CheckCollision(images,pillars) == 3 && getScore == true)
+{
+   getScore = false;
+   score++;
+}
+
+if (CheckCollision(images,pillars) == 4 && getScore == false)
+{
+   getScore = true;
+}
+
 
 if (CheckCollision(images,pillars,PowerUpPos) == 2 && powerUpIndex != -1)
 {
@@ -400,7 +521,7 @@ if (images[2].offset.y < 310)
 {
    images[2].offset.y += 2;
 }
-else if (alive)
+else if (images[2].offset.y >= 310)
 {
    alive = false;
 }
@@ -416,8 +537,9 @@ ReadKeys(event,1);
 
        if (key == 9)
        {
-       key = 0;
-         ExitGame(images,render);
+         alive = false;
+         key = 0;
+         InMenu(images,event,render);
        }
 
        if (ResetBirdAngle < 10 && BirdRotationAngle != 0)
@@ -431,7 +553,7 @@ ReadKeys(event,1);
        }
 
 
-
+if (alive == true)
       SDL_RenderClear( render );
 
       SDL_RenderCopy( render, images[0].texture, NULL, &TopBackgroundPosition1);
@@ -511,23 +633,247 @@ ReadKeys(event,1);
 
       SDL_RenderCopyEx( render, images[2].texture, NULL, &images[2].offset,BirdRotationAngle,NULL,SDL_FLIP_NONE );
 
+      int numberOfDigits = 0, arrayOfDigits[100];
+      numberOfDigits = CreateNumber(score,arrayOfDigits);
 
-      SDL_RenderPresent( render );
+      InGameScore.x = 20;
+
+      for (int i=0;i<numberOfDigits;i++)
+      {
+          SDL_RenderCopy(render, images[arrayOfDigits[i]+10].texture, NULL, &InGameScore);
+          InGameScore.x += 50;
+      }
+
 
       if (alive == false)
       {
+
+         if (lock == 0)
+         {
+
+         int maxScore=0,numberOfGames=0,games[1000];
+
+
+         fstream file;
+         file.open ("Data.txt");
+
+         file>>maxScore>>numberOfGames;
+
+         for (int i=numberOfGames;i>=1;i--)
+         {
+            file>>games[i];
+         }
+
+         file.seekg(ios::beg);
+
+            lock = 1;
+            numberOfGames++;
+
+
+            if (score > maxScore)
+            file<<score<<endl;
+            else
+            file<<maxScore<<endl;
+
+            file<<numberOfGames<<endl;
+
+            games[numberOfGames] = seconds;
+
+            for (int i=numberOfGames;i>=1;i--)
+            {
+               file<<games[i]<<endl;
+            }
+
+
+            file.close();
+
+         }
+
+
+
+      SDL_RenderCopy(render,images[9].texture,NULL,&GameOverPos);
+      SDL_RenderPresent(render);
       SDL_Delay(2000);
-        ExitGame(images,render);
+
+
+
+      InMenu(images,event,render);
+
+
+      //ExitGame(images,render);
       }
 
-        SDL_Delay(delayTime);
+
+
+      if (alive == true)
+         SDL_RenderPresent(render);
+
+      SDL_Delay(delayTime);
 
    }
 
 }
 
-void InLeaderboard()
+void RenderScore(image images[],SDL_Event event,SDL_Renderer* render,SDL_Rect leaderboardRects[])
 {
+
+    fstream file;
+    file.open ("Data.txt");
+
+    int maxScore = 0,numberOfGames = 0,time;
+    int arrayOfDigits[100],numberOfDigits;
+
+     file>>maxScore>>numberOfGames;
+
+     SDL_RenderClear(render);
+
+     SDL_RenderCopy(render,images[21].texture,NULL,&leaderboardRects[3]);
+
+     SDL_RenderCopy(render,images[22].texture,NULL,&leaderboardRects[4]);
+
+      numberOfDigits = CreateNumber(maxScore,arrayOfDigits);
+
+      for (int i=0;i<numberOfDigits;i++)
+         {
+            SDL_RenderCopy(render,images[arrayOfDigits[i]+10].texture,NULL,&leaderboardRects[5]);
+            leaderboardRects[5].x += 10;
+         }
+
+     for (int i=numberOfGames;i>=1;i--)
+     {
+         SDL_RenderCopy(render,images[20].texture,NULL,&leaderboardRects[0]);
+         leaderboardRects[0].y += 50;
+
+
+
+         leaderboardRects[1].x = 60;
+
+         numberOfDigits = CreateNumber(i,arrayOfDigits);
+
+         for (int j=0;j<numberOfDigits;j++)
+         {
+            SDL_RenderCopy(render,images[arrayOfDigits[j]+10].texture,NULL,&leaderboardRects[1]);
+            leaderboardRects[1].x += 10;
+         }
+         leaderboardRects[1].y += 50;
+
+         int time;
+         file>>time;
+
+         numberOfDigits = CreateNumber(time,arrayOfDigits);
+
+         leaderboardRects[2].x = 160;
+
+         for (int j=0;j<numberOfDigits;j++)
+         {
+            SDL_RenderCopy(render,images[arrayOfDigits[j]+10].texture,NULL,&leaderboardRects[2]);
+            leaderboardRects[2].x += 10;
+         }
+         leaderboardRects[2].y += 50;
+
+     }
+file.close();
+     SDL_RenderPresent(render);
+}
+
+void InLeaderboard(image images[],SDL_Event event,SDL_Renderer* render)
+{
+
+SDL_Rect textPosition;
+textPosition.x = 10;
+textPosition.y = 50;
+textPosition.w = 150;
+textPosition.h = 30;
+
+SDL_Rect gameID;
+gameID.x = 60;
+gameID.y = 55;
+gameID.w = 10;
+gameID.h = 20;
+
+SDL_Rect gameTime;
+gameTime.x = 160;
+gameTime.y = 55;
+gameTime.w = 10;
+gameTime.h = 20;
+
+SDL_Rect MenuPosition;
+MenuPosition.x = 0;
+MenuPosition.y = 0;
+MenuPosition.w = 700;
+MenuPosition.h = 400;
+
+SDL_Rect MaxScoreTextPosition;
+MaxScoreTextPosition.x = 5;
+MaxScoreTextPosition.y = 5;
+MaxScoreTextPosition.w = 200;
+MaxScoreTextPosition.h = 30;
+
+SDL_Rect MaxScorePosition;
+MaxScorePosition.x = 210;
+MaxScorePosition.y = 15;
+MaxScorePosition.w = 10;
+MaxScorePosition.h = 20;
+
+
+SDL_Rect leaderboardRects[6] = {textPosition,gameID,gameTime,MenuPosition,MaxScoreTextPosition,MaxScorePosition};
+RenderScore(images,event,render,leaderboardRects);
+
+    bool active = true;
+
+    fstream file;
+    file.open ("Data.txt");
+
+    int maxScore,numberOfgames;
+
+    file>>maxScore>>numberOfgames;
+                                                                                                                                                          //Ungurean Alexandru Florin
+    file.close();
+
+ int listLimit1 = 50,listLimit2 = (numberOfgames-8) * 50 * -1;
+
+   while(active)
+   {
+
+     ReadKeys(event,2);
+
+     if (key == 9)
+     {
+        active = false;
+
+        key = 0;
+        InMenu(images,event,render);
+     }
+
+     if (key == 1 &&  textPosition.y < listLimit1)
+     {
+        key = 0;
+        textPosition.y += 50;
+        gameID.y += 50;
+        gameTime.y += 50;
+        MaxScoreTextPosition.y += 50;
+        MaxScorePosition.y += 50;
+
+        SDL_Rect leaderboardRects[6] = {textPosition,gameID,gameTime,MenuPosition,MaxScoreTextPosition,MaxScorePosition};
+        RenderScore(images,event,render,leaderboardRects);
+     }
+
+     if (key == 2 && textPosition.y > listLimit2)
+     {
+        key = 0;
+        textPosition.y -= 50;
+        gameID.y -= 50;
+        gameTime.y -= 50;
+        MaxScoreTextPosition.y -= 50;
+        MaxScorePosition.y -= 50;
+
+        SDL_Rect leaderboardRects[6] = {textPosition,gameID,gameTime,MenuPosition,MaxScoreTextPosition,MaxScorePosition};
+        RenderScore(images,event,render,leaderboardRects);
+     }
+
+
+   }
+
 }
 
 
@@ -552,10 +898,11 @@ int ArrowPositionIndex = 0;
 bool canSwich = true;
 bool active = true;
 
+
+
    while(active)
    {
    canSwich = true;
-   cout<<ArrowPositionIndex<<endl;
    SDL_RenderClear(render);
 
    SDL_RenderCopy(render,images[7].texture,NULL,&MenuPosition);
@@ -586,12 +933,14 @@ bool active = true;
 
         if (ArrowPositionIndex == 0)
         {
+           active = false;
            InGame(images,event,render);
         }
 
         if (ArrowPositionIndex == 1)
         {
-
+           active = false;
+           InLeaderboard(images,event,render);
         }
 
         if (ArrowPositionIndex == 2)
@@ -638,11 +987,10 @@ bool active = true;
 
 
 
-int main()
+int main(int argc,  char** argv)
 {
 
 // 0 = Menu, 1 = Game, 2 = Leaderboard
-
 
 nullRect.x = 0;
 nullRect.y = 0;
@@ -658,7 +1006,6 @@ FirstTimeSettings(images,render);
 LoadImages(images,render);
 
 InMenu(images,event,render);
-//InGame(images,event,render);
 
     return 0;
 }
